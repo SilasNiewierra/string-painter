@@ -1,23 +1,54 @@
-.painter-wrapper{
-    display:flex;
+@import "../../variables";
+
+.painter-wrapper {
+    display: flex;
     flex-direction: row;
     height: 100%;
 }
 
-.painter{
-    flex: 5;
-    background-color: green;
+.painter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     height: 100%;
+    background-color: white;
+    flex: 5;
+    
     content: "";
 }
 
-.info{
-    flex:2;
-    background-color: red;
+.info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background-color: white;
+    filter: drop-shadow(-5px 0px 5px rgb(136, 136, 136));
+    flex: 2;
 }
 
-@media (max-width: 800px){
-    .painter-wrapper{
+.config-button {
+    width: 200px;
+    height: 50px;
+    border: none;
+    border-radius: 5px;
+    font-size: large;
+    color: white;
+    background-color: $color_primary;
+    transition: 0.2s;
+    outline: none;
+
+    &:hover {
+        // transform: scale(1.1);
+        background-color: $color_primary;
+        opacity: 0.8;
+
+    }
+}
+
+@media (max-width: 800px) {
+    .painter-wrapper {
         flex-direction: column;
     }
 }
