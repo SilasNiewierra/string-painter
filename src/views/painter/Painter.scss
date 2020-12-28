@@ -1,0 +1,23 @@
+.painter-wrapper{
+    display:flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+.painter{
+    flex: 5;
+    background-color: green;
+    height: 100%;
+    content: "";
+}
+
+.info{
+    flex:2;
+    background-color: red;
+}
+
+@media (max-width: 800px){
+    .painter-wrapper{
+        flex-direction: column;
+    }
+}
