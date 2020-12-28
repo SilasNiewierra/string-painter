@@ -2,6 +2,7 @@ import { Component } from "react";
 import './Painter.scss';
 import missing from '../../assets/images/missing.png';
 import { HiDownload } from 'react-icons/hi';
+import { HiTrash } from 'react-icons/hi';
 import { jsPDF } from "jspdf";
 
 
@@ -18,6 +19,7 @@ class Painter extends Component {
         this.setStartingPoint = this.setStartingPoint.bind(this);
         this.validateStartingPoint = this.validateStartingPoint.bind(this);
         this.keydownFunction = this.keydownFunction.bind(this);
+        this.clearAll = this.clearAll.bind(this);
 
         this.pointCoordinates = {};
         this.drawingHistory = [];
@@ -75,6 +77,7 @@ class Painter extends Component {
         var size = 700;
         var stepRadius = 6;
         var canvas = document.getElementById('canvas');
+        canvas.style.display = "block";
         var ctx = canvas.getContext("2d");
 
         canvas.width = canvas.height = size;
@@ -151,6 +154,25 @@ class Painter extends Component {
         doc.save('instructions.pdf');
     }
 
+    clearAll() {
+        this.setState({
+            steps: 90,
+            nextPoint: 10,
+            startPoint: null,
+            hasBeenDrawn: false,
+            invalidInput: false,
+            tempStart: 1,
+            tempPoint: 0,
+        });
+        this.pointCoordinates = {};
+        this.drawingHistory = [];
+
+        var canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = "none";
+    }
+
     keydownFunction(event) {
         // ESC
         if (event.keyCode === 27) {
@@ -198,6 +220,11 @@ class Painter extends Component {
         }
     }
 
+    componentDidMount(){
+        var canvas = document.getElementById('canvas');
+        canvas.style.display = "none";
+    }
+
     componentWillUnmount() {
         document.removeEventListener("keydown", this.keydownFunction, false);
     }
@@ -206,13 +233,16 @@ class Painter extends Component {
         return (
             <div className="painter-wrapper">
                 <div className="painter">
-                    <canvas id="canvas"></canvas>
-                    {!this.state.hasBeenDrawn &&
+
+                    {
+                        !this.state.hasBeenDrawn &&
                         <div>
                             <img src={missing} alt=" " width={100} />
                             Whoops! Seems like you haven't drawn your circle yet
                         </div>
                     }
+                    <canvas id="canvas"></canvas>
+
                 </div>
                 <div className="info">
 
@@ -223,12 +253,20 @@ class Painter extends Component {
                         follow them to create your String Art as a real project.
                     </p>
 
+
+
                     {/* CIRCLE DRAWING */}
-                    <h4 align="center">Define the amount of circle points</h4>
-                    <div className="config-section-wrapper">
-                        <input className="config-input" value={this.state.steps} onChange={this.updateInputValue} type="number" />
-                        <button className="config-button" onClick={() => this.drawCircle(this.state.steps)}>Draw The Circle</button>
-                    </div>
+                    {
+                        !this.state.hasBeenDrawn &&
+                        <div>
+                            <h4 align="center">Define the amount of circle points</h4>
+                            <div className="config-section-wrapper">
+                                <input className="config-input" value={this.state.steps} onChange={this.updateInputValue} type="number" />
+                                <button className="config-button" onClick={() => this.drawCircle(this.state.steps)}>Draw The Circle</button>
+                            </div>
+                        </div>
+                    }
+
 
                     {/* STARTING POINT */}
                     {
@@ -265,8 +303,10 @@ class Painter extends Component {
                             </div> */}
                         </div>
                     }
-
-                    <button className="download-button" onClick={() => this.printList()} ><HiDownload /> Print Drawing History</button>
+                    <div className="actions-wrapper">
+                        <button className="clear-button" onClick={this.clearAll} ><HiTrash /> </button>
+                        <button className="download-button" onClick={this.printList} ><HiDownload /> Print Drawing History</button>
+                    </div>
                 </div>
             </div>
         );

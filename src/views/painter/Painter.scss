@@ -44,6 +44,7 @@
     outline: none;
     border: none;
     text-align: center;
+    margin-bottom: 20px;
 }
 
 .config-section-wrapper {
@@ -69,6 +70,25 @@
         // transform: scale(1.1);
         background-color: $color_primary;
         opacity: 0.8;
+    }
+}
+
+
+.clear-button {
+    width: 50px;
+    height: 50px;
+    border: 2px solid $color_primary;
+    border-radius: 5px;
+    font-size: large;
+    color: $color_primary;
+    background-color: white;
+    transition: 0.2s;
+    outline: none;
+    margin-right: 10px;
+
+    &:hover {
+        background-color: $color_primary;
+        color: white;
     }
 }
 
@@ -99,6 +119,11 @@
     border-color: $color_primary;
     width: 50px;
     margin-right: 20px;
+}
+
+.actions-wrapper{
+    display: flex;
+    flex-direction: row;
 }
 
 @media (max-width: 800px) {
