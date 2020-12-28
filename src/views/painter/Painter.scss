@@ -29,6 +29,23 @@
     padding-right: 20px;
 }
 
+.next-point-info-wrapper{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.next-point-info{
+    width: 50px;
+    height: 50px;
+    font-size: 30px;
+    font-weight: bold;
+    outline: none;
+    border: none;
+    text-align: center;
+}
+
 .config-section-wrapper {
     display: flex;
     flex-direction: row;

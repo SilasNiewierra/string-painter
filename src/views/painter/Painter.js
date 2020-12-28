@@ -9,6 +9,7 @@ class Painter extends Component {
 
     constructor(props) {
         super(props);
+
         this.drawCircle = this.drawCircle.bind(this);
         this.drawLine = this.drawLine.bind(this);
         this.updateInputValue = this.updateInputValue.bind(this);
@@ -16,21 +17,31 @@ class Painter extends Component {
         this.printList = this.printList.bind(this);
         this.setStartingPoint = this.setStartingPoint.bind(this);
         this.validateStartingPoint = this.validateStartingPoint.bind(this);
-        this.state = { stepSize: 90, nextPoint: 10, startPoint: null, hasBeenDrawn: false };
+        this.keydownFunction = this.keydownFunction.bind(this);
+
         this.pointCoordinates = {};
         this.drawingHistory = [];
-        this.tempStart = null;
+
+        this.state = {
+            steps: 90,
+            nextPoint: 10,
+            startPoint: null,
+            hasBeenDrawn: false,
+            invalidInput: false,
+            tempStart: 1,
+            tempPoint: 0,
+        };
     }
 
     updateInputValue(evt) {
         this.setState({
-            stepSize: evt.target.value
+            steps: evt.target.value
         });
 
     }
 
     updateNextPoint(evt) {
-        if (evt.target.value <= this.state.stepSize && evt.target.value > 0) {
+        if (evt.target.value <= this.state.steps && evt.target.value > 0) {
             this.setState({
                 nextPoint: evt.target.value
             });
@@ -42,17 +53,19 @@ class Painter extends Component {
     }
 
     setStartingPoint() {
-        this.setState({
-            startPoint: this.tempStart
-        });
+        if (this.state.tempStart <= this.state.steps && this.state.tempStart > 0) {
+            this.setState({
+                startPoint: this.state.tempStart
+            });
+            document.addEventListener("keydown", this.keydownFunction, false);
+        }
+
     }
 
     validateStartingPoint(evt) {
-        if (evt.target.value <= this.state.stepSize && evt.target.value > 0) {
-            this.tempStart = evt.target.value;
-        } else {
-            alert("Please enter only valid numbers");
-        }
+        this.setState({
+            tempStart: evt.target.value
+        });
     }
 
     drawCircle(steps) {
@@ -138,6 +151,57 @@ class Painter extends Component {
         doc.save('instructions.pdf');
     }
 
+    keydownFunction(event) {
+        // ESC
+        if (event.keyCode === 27) {
+            this.setState({
+                tempPoint: 0
+            });
+        }
+        // ENTER
+        else if (event.keyCode === 13) {
+            if (this.state.tempPoint > 0 && this.state.tempPoint <= this.state.steps) {
+                this.drawLine(this.state.tempPoint);
+                this.setState({
+                    tempPoint: 0
+                });
+            }
+        }
+        // BACKSPACE
+        else if (event.keyCode === 8) {
+            if (this.state.tempPoint <= 9) {
+                this.setState({
+                    tempPoint: 0
+                });
+            } else {
+                this.setState({
+                    tempPoint: Math.floor(this.state.tempPoint / 10)
+                });
+            }
+
+        }
+        // NUMBER between 0 and 9 and 0 and 9 on the numpad
+        else if ((event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105)) {
+            let keyValue = event.keyCode > 57 ? event.keyCode - 96 : event.keyCode - 48;
+            let futureValue = this.state.tempPoint * 10 + keyValue;
+
+            if (futureValue > 0 && futureValue <= this.state.steps) {
+                this.setState({
+                    tempPoint: futureValue
+                })
+
+            } else {
+                // this.setState({
+                //     invalidInput: true
+                // })
+            }
+        }
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener("keydown", this.keydownFunction, false);
+    }
+
     render() {
         return (
             <div className="painter-wrapper">
@@ -159,28 +223,46 @@ class Painter extends Component {
                         follow them to create your String Art as a real project.
                     </p>
 
-                    <h4>Define the amount of circle points</h4>
+                    {/* CIRCLE DRAWING */}
+                    <h4 align="center">Define the amount of circle points</h4>
                     <div className="config-section-wrapper">
-                        <input className="config-input" value={this.state.stepSize} onChange={this.updateInputValue} type="number" />
-                        <button className="config-button" onClick={() => this.drawCircle(this.state.stepSize)}>Draw The Circle</button>
+                        <input className="config-input" value={this.state.steps} onChange={this.updateInputValue} type="number" />
+                        <button className="config-button" onClick={() => this.drawCircle(this.state.steps)}>Draw The Circle</button>
                     </div>
+
+                    {/* STARTING POINT */}
                     {
-                        this.state.hasBeenDrawn && <div>
-                            <h4>Set Your Starting Point</h4>
+                        this.state.hasBeenDrawn && this.state.startPoint === null &&
+                        <div>
+                            <h4 align="center">Set Your Starting Point</h4>
                             <div className="config-section-wrapper">
-                                <input className="config-input" value={this.tempStart} onChange={this.validateStartingPoint} type="number" />
+                                <input className="config-input" value={this.state.tempStart} onChange={this.validateStartingPoint} type="number" />
                                 <button className="config-button" onClick={this.setStartingPoint} >Set Starting Point</button>
                             </div>
                         </div>
                     }
+
+                    {/* LINE INSTRUCTIONS */}
                     {
                         this.state.startPoint !== null &&
                         <div>
-                            <h4>Draw A New Line</h4>
-                            <div className="config-section-wrapper">
+                            <h4 align="center">Draw A New Line</h4>
+                            <p>
+                                Enter a number to draw a line from the current point to it.
+                                Press ENTER to draw the line, ESC to delete the current number
+                                and BACKSPACE to delete the last entered digit.</p>
+
+                            <div className="next-point-info-wrapper">
+                                <input className="next-point-info" value={this.state.tempPoint} readOnly={true}></input>
+                            </div>
+                            {
+                                this.state.invalidInput &&
+                                <input readOnly={true}>Please enter only valid numbers. Press <b>ESC</b> to reset your current number.</input>
+                            }
+                            {/* <div className="config-section-wrapper">
                                 <input className="config-input" value={this.state.nextPoint} onChange={this.updateNextPoint} type="number" />
                                 <button className="config-button" onClick={() => this.drawLine(this.state.nextPoint)} >Draw A Line</button>
-                            </div>
+                            </div> */}
                         </div>
                     }
 
