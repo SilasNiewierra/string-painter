@@ -11,72 +11,117 @@ class Painter extends Component {
     constructor(props) {
         super(props);
 
-        this.drawCircle = this.drawCircle.bind(this);
-        this.drawLine = this.drawLine.bind(this);
-        this.updateInputValue = this.updateInputValue.bind(this);
-        this.updateNextPoint = this.updateNextPoint.bind(this);
-        this.printList = this.printList.bind(this);
-        this.setStartingPoint = this.setStartingPoint.bind(this);
-        this.validateStartingPoint = this.validateStartingPoint.bind(this);
+        this.setCircleSteps = this.setCircleSteps.bind(this);
+
         this.keydownFunction = this.keydownFunction.bind(this);
         this.clearAll = this.clearAll.bind(this);
 
+        this.drawCircle = this.drawCircle.bind(this);
+        this.drawLine = this.drawLine.bind(this);
+        this.drawPoint = this.drawPoint.bind(this);
+       
+        this.printList = this.printList.bind(this);
+
         this.pointCoordinates = {};
         this.drawingHistory = [];
+        this.stepRadius = 6;
 
         this.state = {
-            steps: 90,
-            nextPoint: 10,
-            startPoint: null,
             hasBeenDrawn: false,
-            invalidInput: false,
-            tempStart: 1,
-            tempPoint: 0,
+
+            steps: 90,
+            currentPoint: 0,
+            nextPoint: 0
         };
     }
 
-    updateInputValue(evt) {
+    setCircleSteps(evt) {
         this.setState({
             steps: evt.target.value
         });
 
     }
 
-    updateNextPoint(evt) {
-        if (evt.target.value <= this.state.steps && evt.target.value > 0) {
+    // React to keyboard inputs as drawing instrcutions
+    keydownFunction(event) {
+        // ESC
+        if (event.keyCode === 27) {
+            this.drawPoint(this.state.nextPoint, "#000000");
             this.setState({
-                nextPoint: evt.target.value
+                nextPoint: 0
             });
+        }
+        // BACKSPACE
+        else if (event.keyCode === 8) {
+            if (this.state.nextPoint <= 9) {
+                this.drawPoint(this.state.nextPoint, "#000000");
+                this.setState({
+                    nextPoint: 0
+                });
+            } else {
+                this.drawPoint(this.state.nextPoint, "#000000");
+                this.setState({
+                    nextPoint: Math.floor(this.state.nextPoint / 10)
+                });
+                this.drawPoint(this.state.nextPoint, "#AA4465");
+            }
+        }
+        // NUMBER between 0 and 9 and 0 and 9 on the numpad
+        else if ((event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105)) {
+            let keyValue = event.keyCode > 57 ? event.keyCode - 96 : event.keyCode - 48;
+            let possibleNextPoint = this.state.nextPoint * 10 + keyValue;
 
-        } else {
-            alert("Please enter only valid numbers");
+            if (possibleNextPoint > 0 && possibleNextPoint <= this.state.steps) {
+                this.drawPoint(this.state.nextPoint, "#000000");
+
+                this.setState({
+                    nextPoint: possibleNextPoint
+                });
+                this.drawPoint(this.state.nextPoint, "#AA4465");
+
+            }
+        }
+        // ENTER
+        else if (event.keyCode === 13) {
+            // check if next point is valid
+            if (this.state.nextPoint <= this.state.steps && this.state.nextPoint > 0 && this.state.nextPoint !== this.state.currentPoint) {
+                // if it's the initial point, set the point without line and color it
+                if (this.state.currentPoint === 0) {
+                    this.setState({
+                        currentPoint: this.state.nextPoint
+                    });
+                    this.drawPoint(this.state.currentPoint, "#f557a6");
+                    this.drawingHistory.push(this.state.currentPoint);
+                }
+                // if it's not the initial point, draw the line and color the new points
+                else {
+                    this.drawPoint(this.state.currentPoint, "#000000");
+                    this.drawLine();
+                    this.setState({
+                        currentPoint: this.state.nextPoint
+                    });
+                    this.drawPoint(this.state.currentPoint, "#f557a6");
+                    this.drawingHistory.push(this.state.currentPoint);
+                }
+                this.setState({
+                    nextPoint: 0
+                });
+            }
         }
 
     }
 
-    setStartingPoint() {
-        if (this.state.tempStart <= this.state.steps && this.state.tempStart > 0) {
-            this.setState({
-                startPoint: this.state.tempStart
-            });
-            document.addEventListener("keydown", this.keydownFunction, false);
-            this.drawingHistory.push(this.state.tempStart);
-        }
 
-    }
 
-    validateStartingPoint(evt) {
-        this.setState({
-            tempStart: evt.target.value
-        });
-    }
+    // Drawing Functions
 
     drawCircle(steps) {
         this.pointCoordinates = {};
         var degree = 360 / steps;
         var radian = degree * Math.PI / 180;
         var size = 700;
-        var stepRadius = 6;
+
+
         var canvas = document.getElementById('canvas');
         canvas.style.display = "block";
         var ctx = canvas.getContext("2d");
@@ -87,7 +132,7 @@ class Painter extends Component {
         var step = radian;
         var h = size / 2;
         var k = size / 2;
-        var r = size / 2 - stepRadius * 3;
+        var r = size / 2 - this.stepRadius * 3;
         ctx.strokeStyle = "rgb(0,0,0)";
 
         ctx.beginPath();
@@ -96,47 +141,55 @@ class Painter extends Component {
             let x = Math.floor(h + r * Math.cos(theta));
             let y = Math.floor(k - r * Math.sin(theta));
             this.pointCoordinates[index] = ([x, y]);
-            ctx.fillRect(x, y, stepRadius, stepRadius);
+            ctx.fillRect(x, y, this.stepRadius, this.stepRadius);
             ctx.font = "10px Arial";
-            ctx.fillText(index, x, y - stepRadius);
+            ctx.fillText(index, x, y - this.stepRadius);
             index += 1;
 
         }
         ctx.closePath();
         this.setState({
             hasBeenDrawn: true
-        })
+        });
+        document.addEventListener("keydown", this.keydownFunction, false);
     }
 
-    drawLine(end) {
-        var stepRadius = 6;
+    drawLine() {
         var canvas = document.getElementById('canvas');
 
         var context = canvas.getContext('2d');
         context.strokeStyle = "rgb(0,0,0)";
         context.beginPath();
 
-        var x = this.pointCoordinates[this.state.startPoint][0] + stepRadius / 2;
-        var y = this.pointCoordinates[this.state.startPoint][1] + stepRadius / 2;
+        var x = this.pointCoordinates[this.state.currentPoint][0] + this.stepRadius / 2;
+        var y = this.pointCoordinates[this.state.currentPoint][1] + this.stepRadius / 2;
         context.moveTo(x, y);
 
-        if (this.state.startPoint !== end) {
-            var new_x = this.pointCoordinates[end][0] + stepRadius / 2;
-            var new_y = this.pointCoordinates[end][1] + stepRadius / 2;
-            context.lineTo(new_x, new_y);
-            context.stroke();
+        var new_x = this.pointCoordinates[this.state.nextPoint][0] + this.stepRadius / 2;
+        var new_y = this.pointCoordinates[this.state.nextPoint][1] + this.stepRadius / 2;
+        context.lineTo(new_x, new_y);
+        context.stroke();
 
-            this.drawingHistory.push(end);
 
-            this.setState({
-                startPoint: end
-            });
-        } else {
-            alert("the start and end point must be different");
-        }
-
+        this.setState({
+            currentPoint: this.state.nextPoint
+        });
     }
 
+    drawPoint(point, color) {
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext("2d");
+
+        // Draw Next Point
+        ctx.fillStyle = color;
+        if (point in this.pointCoordinates) {
+            let x = this.pointCoordinates[point][0];
+            let y = this.pointCoordinates[point][1];
+            ctx.fillRect(x, y, this.stepRadius, this.stepRadius);
+        }
+    }
+
+    // Download the drawing history as PDF
     printList() {
         var doc = new jsPDF();
 
@@ -157,14 +210,13 @@ class Painter extends Component {
 
     clearAll() {
         this.setState({
-            steps: 90,
-            nextPoint: 10,
-            startPoint: null,
             hasBeenDrawn: false,
-            invalidInput: false,
-            tempStart: 1,
-            tempPoint: 0,
+
+            steps: 90,
+            currentPoint: 0,
+            nextPoint: 0
         });
+
         this.pointCoordinates = {};
         this.drawingHistory = [];
 
@@ -174,54 +226,9 @@ class Painter extends Component {
         canvas.style.display = "none";
     }
 
-    keydownFunction(event) {
-        // ESC
-        if (event.keyCode === 27) {
-            this.setState({
-                tempPoint: 0
-            });
-        }
-        // ENTER
-        else if (event.keyCode === 13) {
-            if (this.state.tempPoint > 0 && this.state.tempPoint <= this.state.steps) {
-                this.drawLine(this.state.tempPoint);
-                this.setState({
-                    tempPoint: 0
-                });
-            }
-        }
-        // BACKSPACE
-        else if (event.keyCode === 8) {
-            if (this.state.tempPoint <= 9) {
-                this.setState({
-                    tempPoint: 0
-                });
-            } else {
-                this.setState({
-                    tempPoint: Math.floor(this.state.tempPoint / 10)
-                });
-            }
 
-        }
-        // NUMBER between 0 and 9 and 0 and 9 on the numpad
-        else if ((event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105)) {
-            let keyValue = event.keyCode > 57 ? event.keyCode - 96 : event.keyCode - 48;
-            let futureValue = this.state.tempPoint * 10 + keyValue;
-
-            if (futureValue > 0 && futureValue <= this.state.steps) {
-                this.setState({
-                    tempPoint: futureValue
-                })
-
-            } else {
-                // this.setState({
-                //     invalidInput: true
-                // })
-            }
-        }
-    }
-
-    componentDidMount(){
+    // Lifecycle Methods
+    componentDidMount() {
         var canvas = document.getElementById('canvas');
         canvas.style.display = "none";
     }
@@ -233,27 +240,31 @@ class Painter extends Component {
     render() {
         return (
             <div className="painter-wrapper">
-                <div className="painter">
 
+                {/* PAINTER CANVAS */}
+                <div className="painter">
                     {
                         !this.state.hasBeenDrawn &&
-                        <div>
+                        <div className="missing-wrapper">
                             <img src={missing} alt=" " width={100} />
-                            Whoops! Seems like you haven't drawn your circle yet
+                            <p>Whoops! Seems like you haven't drawn your circle yet.</p>
                         </div>
                     }
                     <canvas id="canvas"></canvas>
-
                 </div>
+
+                {/* CONFIG INFO */}
                 <div className="info">
 
-                    <h2>String Art Creator</h2>
-                    <p>
-                        Use our intuitive String Art Creator to develop an image consisting of only one string.
-                        Once you're down with the creative part, just print the instructions as pdf and
-                        follow them to create your String Art as a real project.
+                    {/* TITLE */}
+                    <div>
+                        <h2 align="center">String Art Creator</h2>
+                        <p>
+                            Use our intuitive String Art Creator to develop an image consisting of only one string.
+                            Once you're down with the creative part, just print the instructions as pdf and
+                            follow them to create your String Art as a real project.
                     </p>
-
+                    </div>
 
 
                     {/* CIRCLE DRAWING */}
@@ -262,48 +273,30 @@ class Painter extends Component {
                         <div>
                             <h4 align="center">Define the amount of circle points</h4>
                             <div className="config-section-wrapper">
-                                <input className="config-input" value={this.state.steps} onChange={this.updateInputValue} type="number" />
+                                <input className="config-input" value={this.state.steps} onChange={this.setCircleSteps} type="number" />
                                 <button className="config-button" onClick={() => this.drawCircle(this.state.steps)}>Draw The Circle</button>
-                            </div>
-                        </div>
-                    }
-
-
-                    {/* STARTING POINT */}
-                    {
-                        this.state.hasBeenDrawn && this.state.startPoint === null &&
-                        <div>
-                            <h4 align="center">Set Your Starting Point</h4>
-                            <div className="config-section-wrapper">
-                                <input className="config-input" value={this.state.tempStart} onChange={this.validateStartingPoint} type="number" />
-                                <button className="config-button" onClick={this.setStartingPoint} >Set Starting Point</button>
                             </div>
                         </div>
                     }
 
                     {/* LINE INSTRUCTIONS */}
                     {
-                        this.state.startPoint !== null &&
+                        this.state.hasBeenDrawn &&
                         <div>
                             <h4 align="center">Draw A New Line</h4>
                             <p>
                                 Enter a number to draw a line from the current point to it.
                                 Press ENTER to draw the line, ESC to delete the current number
-                                and BACKSPACE to delete the last entered digit.</p>
+                                and BACKSPACE to delete the last entered digit.
+                                The current and next point have to be different!</p>
 
                             <div className="next-point-info-wrapper">
-                                <input className="next-point-info" value={this.state.tempPoint} readOnly={true}></input>
+                                <input className="next-point-info" value={this.state.nextPoint} readOnly={true}></input>
                             </div>
-                            {
-                                this.state.invalidInput &&
-                                <input readOnly={true}>Please enter only valid numbers. Press <b>ESC</b> to reset your current number.</input>
-                            }
-                            {/* <div className="config-section-wrapper">
-                                <input className="config-input" value={this.state.nextPoint} onChange={this.updateNextPoint} type="number" />
-                                <button className="config-button" onClick={() => this.drawLine(this.state.nextPoint)} >Draw A Line</button>
-                            </div> */}
                         </div>
                     }
+
+                    {/* CLEAR AND DOWNLOAD */}
                     <div className="actions-wrapper">
                         <button className="clear-button" onClick={this.clearAll} ><HiTrash /> </button>
                         <button className="download-button" onClick={this.printList} ><HiDownload /> Print Drawing History</button>
