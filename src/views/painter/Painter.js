@@ -60,6 +60,7 @@ class Painter extends Component {
                 startPoint: this.state.tempStart
             });
             document.addEventListener("keydown", this.keydownFunction, false);
+            this.drawingHistory.push(this.state.tempStart);
         }
 
     }
