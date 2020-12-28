@@ -19,7 +19,7 @@ class Painter extends Component {
         this.drawCircle = this.drawCircle.bind(this);
         this.drawLine = this.drawLine.bind(this);
         this.drawPoint = this.drawPoint.bind(this);
-       
+
         this.printList = this.printList.bind(this);
 
         this.pointCoordinates = {};
@@ -141,7 +141,11 @@ class Painter extends Component {
             let x = Math.floor(h + r * Math.cos(theta));
             let y = Math.floor(k - r * Math.sin(theta));
             this.pointCoordinates[index] = ([x, y]);
-            ctx.fillRect(x, y, this.stepRadius, this.stepRadius);
+
+            ctx.beginPath();
+            ctx.arc(x, y, Math.floor(this.stepRadius), 0, 2 * Math.PI);
+            ctx.fill();
+            // ctx.fillRect(x, y, this.stepRadius, this.stepRadius);
             ctx.font = "10px Arial";
             ctx.fillText(index, x, y - this.stepRadius);
             index += 1;
@@ -185,7 +189,10 @@ class Painter extends Component {
         if (point in this.pointCoordinates) {
             let x = this.pointCoordinates[point][0];
             let y = this.pointCoordinates[point][1];
-            ctx.fillRect(x, y, this.stepRadius, this.stepRadius);
+            ctx.beginPath();
+            ctx.arc(x, y, Math.floor(this.stepRadius), 0, 2 * Math.PI);
+            ctx.fill();
+            // ctx.fillRect(x, y, this.stepRadius, this.stepRadius);
         }
     }
 
