@@ -52,7 +52,7 @@ class Painter extends Component {
             });
         }
         // BACKSPACE
-        else if (event.keyCode === 8) {
+        else if (event.keyCode === 8 || event.keyCode === 107) {
             if (this.state.nextPoint <= 9) {
                 this.drawPoint(this.state.nextPoint, "#000000");
                 this.setState({
@@ -63,7 +63,7 @@ class Painter extends Component {
                 this.setState({
                     nextPoint: Math.floor(this.state.nextPoint / 10)
                 });
-                this.drawPoint(this.state.nextPoint, "#AA4465");
+                this.drawPoint(this.state.nextPoint, "#26b918");
             }
         }
         // NUMBER between 0 and 9 and 0 and 9 on the numpad
@@ -77,7 +77,7 @@ class Painter extends Component {
                 this.setState({
                     nextPoint: possibleNextPoint
                 });
-                this.drawPoint(this.state.nextPoint, "#AA4465");
+                this.drawPoint(this.state.nextPoint, "#26b918");
 
             }
         }
@@ -140,7 +140,7 @@ class Painter extends Component {
             let x = Math.floor(h + r * Math.sin(theta));
             let y = Math.floor(k - r * Math.cos(theta));
             this.pointCoordinates[index] = ([x, y]);
-            
+
             ctx.beginPath();
             ctx.arc(x, y, Math.floor(this.stepRadius), 0, 2 * Math.PI);
             ctx.fill();
@@ -289,13 +289,12 @@ class Painter extends Component {
                     {
                         this.state.hasBeenDrawn &&
                         <div>
-                            <h4 align="center">Draw A New Line</h4>
-                            <p>
-                                Enter a number to draw a line from the current point to it.
-                                Press ENTER to draw the line, ESC to delete the current number
-                                and BACKSPACE to delete the last entered digit.
-                                The current and next point have to be different!</p>
-
+                            <h4 align="center">Instructions</h4>
+                            <p>Enter a number to draw a line from your <span style={{ color: "#f557a6" }}>current point</span> to the <span style={{ color: "#26b918" }}>next point</span>.</p>
+                            <p>Press <b>ENTER</b> to draw the line.</p>
+                            <p>Press <b>ESC</b> to delete the current number.</p>
+                            <p> Press <b>BACKSPACE</b>  or <b>+</b> on the numpad to delete the last entered digit.</p>
+                            <p>The current and next point have to be different!</p>
                             <div className="next-point-info-wrapper">
                                 <input className="next-point-info" value={this.state.nextPoint} readOnly={true}></input>
                             </div>
