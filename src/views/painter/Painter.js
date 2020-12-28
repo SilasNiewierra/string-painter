@@ -135,13 +135,12 @@ class Painter extends Component {
         var r = size / 2 - this.stepRadius * 3;
         ctx.strokeStyle = "rgb(0,0,0)";
 
-        ctx.beginPath();
         var index = 1;
         for (var theta = 0; theta < 2 * Math.PI; theta += step) {
-            let x = Math.floor(h + r * Math.cos(theta));
-            let y = Math.floor(k - r * Math.sin(theta));
+            let x = Math.floor(h + r * Math.sin(theta));
+            let y = Math.floor(k - r * Math.cos(theta));
             this.pointCoordinates[index] = ([x, y]);
-
+            
             ctx.beginPath();
             ctx.arc(x, y, Math.floor(this.stepRadius), 0, 2 * Math.PI);
             ctx.fill();
