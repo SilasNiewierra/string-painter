@@ -279,7 +279,7 @@ class Painter extends Component {
                         <div>
                             <h4 align="center">Define the amount of circle points</h4>
                             <div className="config-section-wrapper">
-                                <input className="config-input" value={this.state.steps} onChange={this.setCircleSteps} type="number" />
+                                <input className="config-input" value={this.state.steps} onChange={this.setCircleSteps} type="number"/>
                                 <button className="config-button" onClick={() => this.drawCircle(this.state.steps)}>Draw The Circle</button>
                             </div>
                         </div>

@@ -44,9 +44,10 @@
 }
 
 .next-point-info{
-    width: 50px;
-    height: 50px;
-    font-size: 30px;
+    width: 200px;
+    height: 80px;
+    font-size: 50px;
+    padding: 0;
     font-weight: bold;
     outline: none;
     border: none;
@@ -126,6 +127,7 @@
     border-color: $color_primary;
     width: 50px;
     margin-right: 20px;
+    text-align: center;
 }
 
 .actions-wrapper{
