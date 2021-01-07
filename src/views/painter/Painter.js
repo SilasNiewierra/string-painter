@@ -46,20 +46,17 @@ class Painter extends Component {
     keydownFunction(event) {
         // ESC
         if (event.keyCode === 27) {
-            this.drawPoint(this.state.nextPoint, "#000000");
-            this.setState({
-                nextPoint: 0
-            });
+            this.clearDrawing();
         }
         // BACKSPACE
         else if (event.keyCode === 8 || event.keyCode === 107) {
             if (this.state.nextPoint <= 9) {
-                this.drawPoint(this.state.nextPoint, "#000000");
+                this.redrawPoint();
                 this.setState({
                     nextPoint: 0
                 });
             } else {
-                this.drawPoint(this.state.nextPoint, "#000000");
+                this.redrawPoint();
                 this.setState({
                     nextPoint: Math.floor(this.state.nextPoint / 10)
                 });
@@ -72,8 +69,7 @@ class Painter extends Component {
             let possibleNextPoint = this.state.nextPoint * 10 + keyValue;
 
             if (possibleNextPoint > 0 && possibleNextPoint <= this.state.steps) {
-                this.drawPoint(this.state.nextPoint, "#000000");
-
+                this.redrawPoint();
                 this.setState({
                     nextPoint: possibleNextPoint
                 });
@@ -135,20 +131,19 @@ class Painter extends Component {
         var r = size / 2 - this.stepRadius * 3;
         ctx.strokeStyle = "rgb(0,0,0)";
 
-        var index = 1;
-        for (var theta = 0; theta < 2 * Math.PI; theta += step) {
+        let theta = 0;
+        for (let i = 1; i <= steps; i++) {
             let x = Math.floor(h + r * Math.sin(theta));
             let y = Math.floor(k - r * Math.cos(theta));
-            this.pointCoordinates[index] = ([x, y]);
+            this.pointCoordinates[i] = ([x, y]);
 
             ctx.beginPath();
             ctx.arc(x, y, Math.floor(this.stepRadius), 0, 2 * Math.PI);
             ctx.fill();
-            // ctx.fillRect(x, y, this.stepRadius, this.stepRadius);
             ctx.font = "10px Arial";
-            ctx.fillText(index, x, y - this.stepRadius);
-            index += 1;
 
+            ctx.fillText(i, x, y - this.stepRadius);
+            theta += step
         }
         ctx.closePath();
         this.setState({
@@ -179,6 +174,16 @@ class Painter extends Component {
         });
     }
 
+    redrawPoint() {
+        // if next point is current point dont go black but back to current color
+        if (this.state.currentPoint === this.state.nextPoint) {
+            this.drawPoint(this.state.nextPoint, "#f557a6");
+
+        } else {
+            this.drawPoint(this.state.nextPoint, "#000000");
+        }
+    }
+
     drawPoint(point, color) {
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext("2d");
@@ -191,7 +196,6 @@ class Painter extends Component {
             ctx.beginPath();
             ctx.arc(x, y, Math.floor(this.stepRadius), 0, 2 * Math.PI);
             ctx.fill();
-            // ctx.fillRect(x, y, this.stepRadius, this.stepRadius);
         }
     }
 
@@ -212,6 +216,20 @@ class Painter extends Component {
         doc.text(20, 50 + (final_index + 1) * 10, 'End');
 
         doc.save('instructions.pdf');
+    }
+
+    clearDrawing() {
+        this.setState({
+            currentPoint: 0,
+            nextPoint: 0
+        });
+
+        this.drawingHistory = [];
+
+        var canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        this.drawCircle(this.state.steps);
     }
 
     clearAll() {
@@ -279,7 +297,7 @@ class Painter extends Component {
                         <div>
                             <h4 align="center">Define the amount of circle points</h4>
                             <div className="config-section-wrapper">
-                                <input className="config-input" value={this.state.steps} onChange={this.setCircleSteps} type="number"/>
+                                <input className="config-input" value={this.state.steps} onChange={this.setCircleSteps} type="number" />
                                 <button className="config-button" onClick={() => this.drawCircle(this.state.steps)}>Draw The Circle</button>
                             </div>
                         </div>
@@ -292,7 +310,7 @@ class Painter extends Component {
                             <h4 align="center">Instructions</h4>
                             <p>Enter a number to draw a line from your <span style={{ color: "#f557a6" }}>current point</span> to the <span style={{ color: "#26b918" }}>next point</span>.</p>
                             <p>Press <b>ENTER</b> to draw the line.</p>
-                            <p>Press <b>ESC</b> to delete the current number.</p>
+                            <p>Press <b>ESC</b> to delete the painting.</p>
                             <p> Press <b>BACKSPACE</b>  or <b>+</b> on the numpad to delete the last entered digit.</p>
                             <p>The current and next point have to be different!</p>
                             <div className="next-point-info-wrapper">
