@@ -18,9 +18,11 @@ class Painter extends Component {
 
         this.drawCircle = this.drawCircle.bind(this);
         this.drawLine = this.drawLine.bind(this);
+        this.drawHiddenCanvas = this.drawHiddenCanvas.bind(this);
         this.drawPoint = this.drawPoint.bind(this);
 
         this.printList = this.printList.bind(this);
+        this.download = this.download.bind(this);
 
         this.pointCoordinates = {};
         this.drawingHistory = [];
@@ -29,10 +31,12 @@ class Painter extends Component {
         this.state = {
             hasBeenDrawn: false,
 
-            steps: 90,
+            steps: 100,
             currentPoint: 0,
             nextPoint: 0
         };
+
+        this.printCanvas = null;
     }
 
     setCircleSteps(evt) {
@@ -92,6 +96,7 @@ class Painter extends Component {
                 // if it's not the initial point, draw the line and color the new points
                 else {
                     this.drawPoint(this.state.currentPoint, "#000000");
+                    this.drawHiddenCanvas();
                     this.drawLine();
                     this.setState({
                         currentPoint: this.state.nextPoint
@@ -124,6 +129,9 @@ class Painter extends Component {
 
         canvas.width = canvas.height = size;
 
+        var hiddenCanvas = document.getElementById('hidden_canvas');
+        hiddenCanvas.width = hiddenCanvas.height = size;
+
 
         var step = radian;
         var h = size / 2;
@@ -152,6 +160,23 @@ class Painter extends Component {
         document.addEventListener("keydown", this.keydownFunction, false);
     }
 
+    drawHiddenCanvas() {
+        let hiddenCanvas = document.getElementById('hidden_canvas');
+
+        let hiddenContext = hiddenCanvas.getContext('2d');
+        hiddenContext.strokeStyle = "rgb(0,0,0)";
+        hiddenContext.beginPath();
+
+        var x_h = this.pointCoordinates[this.state.currentPoint][0] + this.stepRadius / 2;
+        var y_h = this.pointCoordinates[this.state.currentPoint][1] + this.stepRadius / 2;
+        hiddenContext.moveTo(x_h, y_h);
+
+        var new_x_h = this.pointCoordinates[this.state.nextPoint][0] + this.stepRadius / 2;
+        var new_y_h = this.pointCoordinates[this.state.nextPoint][1] + this.stepRadius / 2;
+        hiddenContext.lineTo(new_x_h, new_y_h);
+        hiddenContext.stroke();
+    }
+
     drawLine() {
         var canvas = document.getElementById('canvas');
 
@@ -167,6 +192,7 @@ class Painter extends Component {
         var new_y = this.pointCoordinates[this.state.nextPoint][1] + this.stepRadius / 2;
         context.lineTo(new_x, new_y);
         context.stroke();
+        context.closePath();
 
 
         this.setState({
@@ -218,6 +244,13 @@ class Painter extends Component {
         doc.save('instructions.pdf');
     }
 
+    download() {
+        let link = document.createElement('a');
+        link.download = 'filename.png';
+        link.href = document.getElementById('hidden_canvas').toDataURL()
+        link.click();
+    }
+
     clearDrawing() {
         this.setState({
             currentPoint: 0,
@@ -230,6 +263,10 @@ class Painter extends Component {
         const context = canvas.getContext('2d');
         context.clearRect(0, 0, canvas.width, canvas.height);
         this.drawCircle(this.state.steps);
+
+        let hiddenCanvas = document.getElementById('hidden_canvas');
+        let hiddenContext = hiddenCanvas.getContext('2d');
+        hiddenContext.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
     }
 
     clearAll() {
@@ -248,6 +285,10 @@ class Painter extends Component {
         const context = canvas.getContext('2d');
         context.clearRect(0, 0, canvas.width, canvas.height);
         canvas.style.display = "none";
+
+        let hiddenCanvas = document.getElementById('hidden_canvas');
+        let hiddenContext = hiddenCanvas.getContext('2d');
+        hiddenContext.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
     }
 
 
@@ -275,6 +316,7 @@ class Painter extends Component {
                         </div>
                     }
                     <canvas id="canvas"></canvas>
+                    <canvas id="hidden_canvas" style={{ display: "none" }} ></canvas>
                 </div>
 
                 {/* CONFIG INFO */}
@@ -322,7 +364,7 @@ class Painter extends Component {
                     {/* CLEAR AND DOWNLOAD */}
                     <div className="actions-wrapper">
                         <button className="clear-button" onClick={this.clearAll} ><HiTrash /> </button>
-                        <button className="download-button" onClick={this.printList} ><HiDownload /> Print Drawing History</button>
+                        <button className="download-button" onClick={this.download} ><HiDownload /> Print Image</button>
                     </div>
                 </div>
             </div>
