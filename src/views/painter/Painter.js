@@ -3,7 +3,6 @@ import './Painter.scss';
 import missing from '../../assets/images/missing.png';
 import { HiDownload } from 'react-icons/hi';
 import { HiTrash } from 'react-icons/hi';
-import { jsPDF } from "jspdf";
 
 
 class Painter extends Component {
@@ -21,7 +20,6 @@ class Painter extends Component {
         this.drawHiddenCanvas = this.drawHiddenCanvas.bind(this);
         this.drawPoint = this.drawPoint.bind(this);
 
-        this.printList = this.printList.bind(this);
         this.download = this.download.bind(this);
 
         this.pointCoordinates = {};
@@ -225,32 +223,15 @@ class Painter extends Component {
         }
     }
 
-    // Download the drawing history as PDF
-    printList() {
-        var doc = new jsPDF();
-
-        doc.setFontSize(22);
-        doc.text(20, 20, 'Your Custom String Intructions');
-
-        doc.setFontSize(10);
-        doc.text(20, 40, 'Start');
-        var final_index = 0;
-        for (let i = 0; i < this.drawingHistory.length; i++) {
-            doc.text(20, 50 + i * 10, this.drawingHistory[i] + "");
-            final_index = i;
-        }
-        doc.text(20, 50 + (final_index + 1) * 10, 'End');
-
-        doc.save('instructions.pdf');
-    }
-
+    // Download drawing without the circle
     download() {
         let link = document.createElement('a');
-        link.download = 'filename.png';
+        link.download = 'stringart.png';
         link.href = document.getElementById('hidden_canvas').toDataURL()
         link.click();
     }
 
+    // Clear the canvas from all lines
     clearDrawing() {
         this.setState({
             currentPoint: 0,
@@ -269,28 +250,17 @@ class Painter extends Component {
         hiddenContext.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
     }
 
+    // Restart the whole web app
     clearAll() {
+        this.clearDrawing();
         this.setState({
             hasBeenDrawn: false,
 
-            steps: 90,
-            currentPoint: 0,
-            nextPoint: 0
+            steps: 100,
         });
 
         this.pointCoordinates = {};
-        this.drawingHistory = [];
-
-        var canvas = document.getElementById('canvas');
-        const context = canvas.getContext('2d');
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.style.display = "none";
-
-        let hiddenCanvas = document.getElementById('hidden_canvas');
-        let hiddenContext = hiddenCanvas.getContext('2d');
-        hiddenContext.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
     }
-
 
     // Lifecycle Methods
     componentDidMount() {
@@ -301,6 +271,7 @@ class Painter extends Component {
     componentWillUnmount() {
         document.removeEventListener("keydown", this.keydownFunction, false);
     }
+
 
     render() {
         return (
